@@ -1,0 +1,26 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment Variables & Secrets (only .env.example is tracked)
+.env
+*.env.local
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Database & Generated Output Data
+data/
+*.db
+*.sqlite3
+
+# Internal Scratch & Debug Scripts
+scratch/
+
+# Internal Coordination Documents (never committed)
+CONTEXT.md
+LOG.md
+COMMIT_PLAN.md

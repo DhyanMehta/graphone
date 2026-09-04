@@ -1,0 +1,74 @@
+# ============================================================
+# Graphone — Phase I Scraper Configuration
+# ============================================================
+# All concurrency and rate-limit settings are here.
+# Scale total_workers and per-source concurrency_limit up
+# for production runs (500k+ records).
+# ============================================================
+
+global:
+  # Total async worker slots across all sources
+  total_workers: 20
+  # SQLite database path (relative to project root)
+  db_path: "data/records.db"
+
+sources:
+  arxiv:
+    name: "Arxiv"
+    base_url: "https://export.arxiv.org/api/query"
+    client_type: "http"
+    # Concurrent requests to export.arxiv.org at once
+    concurrency_limit: 1
+    # Seconds between requests (robots.txt crawl-delay = 15)
+    rate_limit_delay: 15
+    # Papers fetched per API call (high = fewer round trips)
+    batch_size: 200
+    # Arxiv categories to scrape
+    categories:
+      - "cs.AI"
+      - "cs.LG"
+      - "cs.CL"
+      - "cs.CV"
+    enabled: true
+
+  paperswithcode:
+    name: "Papers with Code"
+    base_url: "https://paperswithcode.co"
+    client_type: "http"
+    concurrency_limit: 5
+    rate_limit_delay: 1.0
+    enabled: true
+
+  github:
+    name: "GitHub API"
+    base_url: "https://api.github.com"
+    client_type: "http"
+    concurrency_limit: 10
+    rate_limit_delay: 0.1
+    enabled: true
+
+  ycombinator:
+    name: "Y Combinator"
+    base_url: "https://www.ycombinator.com"
+    client_type: "http"
+    concurrency_limit: 5
+    rate_limit_delay: 1.0
+    # Only scrape companies with Active status
+    filter_status: "Active"
+    enabled: true
+
+  alternativeto:
+    name: "AlternativeTo"
+    base_url: "https://alternativeto.net"
+    client_type: "http"
+    concurrency_limit: 5
+    rate_limit_delay: 1.0
+    enabled: true
+
+  saashub:
+    name: "SaaSHub"
+    base_url: "https://www.saashub.com"
+    client_type: "http"
+    concurrency_limit: 5
+    rate_limit_delay: 1.0
+    enabled: true

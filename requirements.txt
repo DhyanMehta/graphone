@@ -1,0 +1,14 @@
+aiohttp
+aiosqlite
+beautifulsoup4
+lxml
+playwright
+pydantic
+python-dotenv
+pyyaml
+requests
+tenacity
+dateparser
+rapidfuzz
+gspread
+google-auth
