@@ -1,1 +1,1 @@
-To initialie this repo
+To initialize this repo
