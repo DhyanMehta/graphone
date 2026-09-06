@@ -79,11 +79,20 @@ class BrowserClient:
     async def close(self):
         """Shut down browser and Playwright."""
         if self._context:
-            await self._context.close()
+            try:
+                await self._context.close()
+            except Exception:
+                pass
         if self._browser:
-            await self._browser.close()
+            try:
+                await self._browser.close()
+            except Exception:
+                pass
         if self._playwright:
-            await self._playwright.stop()
+            try:
+                await self._playwright.stop()
+            except Exception:
+                pass
         self._browser = None
         self._context = None
         self._playwright = None

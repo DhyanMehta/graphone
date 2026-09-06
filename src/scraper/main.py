@@ -91,8 +91,49 @@ async def run_saashub(router: Router, db, limit=None):
     return count
 
 
+async def run_jobs(router: Router, db, limit=None):
+    """Run all 5 AI job board crawlers."""
+    from src.scraper.sources.jobs.remoteok import scrape_remoteok
+    from src.scraper.sources.jobs.jobicy import scrape_jobicy
+    from src.scraper.sources.jobs.arbeitnow import scrape_arbeitnow
+    from src.scraper.sources.jobs.hn_hiring import scrape_hn_hiring
+    from src.scraper.sources.jobs.remotive import scrape_remotive
+
+    client = router.get_client("ycombinator")
+    saved = 0
+    saved += (await scrape_remoteok(client, db, limit=limit)).get("saved", 0)
+    saved += (await scrape_jobicy(client, db, limit=limit)).get("saved", 0)
+    saved += (await scrape_arbeitnow(client, db, limit=limit)).get("saved", 0)
+    saved += (await scrape_hn_hiring(client, db, limit=limit)).get("saved", 0)
+    saved += (await scrape_remotive(client, db, limit=limit)).get("saved", 0)
+    return saved
+
+
+async def run_news(router: Router, db, limit=None):
+    """Run all 5 AI news crawlers."""
+    from src.scraper.sources.news.techcrunch import scrape_techcrunch
+    from src.scraper.sources.news.theverge import scrape_theverge
+    from src.scraper.sources.news.mit_news import scrape_mit_news
+    from src.scraper.sources.news.arstechnica import scrape_arstechnica
+    from src.scraper.sources.news.wired import scrape_wired
+    from src.scraper.browser_client import BrowserClient
+
+    client = router.get_client("ycombinator")
+    bclient = BrowserClient()
+    saved = 0
+    try:
+        saved += (await scrape_techcrunch(client, db, limit=limit)).get("saved", 0)
+        saved += (await scrape_theverge(client, db, limit=limit)).get("saved", 0)
+        saved += (await scrape_mit_news(client, db, limit=limit, browser_client=bclient)).get("saved", 0)
+        saved += (await scrape_arstechnica(client, db, limit=limit)).get("saved", 0)
+        saved += (await scrape_wired(client, db, limit=limit)).get("saved", 0)
+    finally:
+        await bclient.close()
+    return saved
+
+
 async def main():
-    parser = argparse.ArgumentParser(description="Graphone Phase I Scraper")
+    parser = argparse.ArgumentParser(description="Graphone Scraper Pipeline")
     parser.add_argument(
         "--sources",
         type=str,
@@ -135,6 +176,8 @@ async def main():
         "paperswithcode": run_paperswithcode,
         "ycombinator": run_ycombinator,
         "saashub": run_saashub,
+        "jobs": run_jobs,
+        "news": run_news,
     }
 
     try:
@@ -148,7 +191,7 @@ async def main():
             logger.info("=== %s complete: %d records saved ===", source, count)
 
         # Show summary
-        for table in ["research_papers", "startups", "products"]:
+        for table in ["research_papers", "startups", "products", "jobs", "news"]:
             count = await get_record_count(db, table)
             if count > 0:
                 logger.info("Total %s in database: %d", table, count)
@@ -178,6 +221,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
+
