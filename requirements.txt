@@ -12,3 +12,4 @@ dateparser
 rapidfuzz
 gspread
 google-auth
+openai

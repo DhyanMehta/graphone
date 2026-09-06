@@ -6,6 +6,8 @@ env/
 # Environment Variables & Secrets (only .env.example is tracked)
 .env
 *.env.local
+service_account*.json
+credentials.json
 
 # Python Bytecode & Cache
 __pycache__/
@@ -24,3 +26,5 @@ scratch/
 CONTEXT.md
 LOG.md
 COMMIT_PLAN.md
+ARCHITECTURE_DRAFT.md
+VIDEO_NOTES.md
