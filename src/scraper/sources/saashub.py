@@ -84,7 +84,7 @@ def _normalize_pricing(raw: Optional[str]) -> Optional[str]:
 async def _discover_products_from_category(
     client: HttpClient,
     category: str,
-    max_pages: int = 5,
+    max_pages: int = 6,
 ) -> list[str]:
     """
     Discover product slugs from a SaaSHub category listing page.
@@ -226,10 +226,10 @@ async def scrape_saashub(
     # Phase 1: Discover product slugs from category pages
     all_slugs = []
     for category in CATEGORIES:
-        if limit is not None and len(all_slugs) >= limit * 2:
+        if limit is not None and len(all_slugs) >= limit * 3:
             break
         slugs = await _discover_products_from_category(
-            client, category, max_pages=3
+            client, category, max_pages=6
         )
         for slug in slugs:
             if slug not in all_slugs:
@@ -270,7 +270,8 @@ async def scrape_saashub(
 
         if saved:
             total_saved += 1
-            if total_saved % 20 == 0 or total_saved <= 5:
+            if total_saved % 25 == 0 or total_saved <= 5:
+                print(f"[SaaSHub] Saved #{total_saved}: {product['product_name']} (pricing: {product.get('pricing_model', 'unknown')})", flush=True)
                 logger.info(
                     "[SaaSHub] Saved #%d: %s (pricing: %s)",
                     total_saved,
@@ -278,5 +279,6 @@ async def scrape_saashub(
                     product.get("pricing_model", "unknown"),
                 )
 
+    print(f"SaaSHub scraping complete: {total_saved} products saved", flush=True)
     logger.info("SaaSHub scraping complete: %d products saved", total_saved)
     return total_saved

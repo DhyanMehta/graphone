@@ -146,7 +146,7 @@ async def save_research_paper(
         published_date = f"{published_date}T00:00:00Z"
 
     try:
-        await db.execute(
+        cur = await db.execute(
             """
             INSERT OR IGNORE INTO research_papers
                 (schema_version, record_type, title, authors, paper_url,
@@ -168,9 +168,7 @@ async def save_research_paper(
             ),
         )
         await db.commit()
-        if db.total_changes > 0:
-            return True
-        return False
+        return cur.rowcount > 0
     except Exception as exc:
         logger.error("Failed to save research paper '%s': %s", paper_url, exc)
         return False
@@ -185,7 +183,7 @@ async def save_startup(
 ) -> bool:
     """Insert a startup record. Returns True if inserted, False if duplicate."""
     try:
-        await db.execute(
+        cur = await db.execute(
             """
             INSERT OR IGNORE INTO startups
                 (schema_version, record_type, source_name, source_url,
@@ -203,7 +201,7 @@ async def save_startup(
             ),
         )
         await db.commit()
-        return True
+        return cur.rowcount > 0
     except Exception as exc:
         logger.error("Failed to save startup '%s': %s", entity_name, exc)
         return False
@@ -227,7 +225,7 @@ async def save_product(
         pricing_model = None
 
     try:
-        await db.execute(
+        cur = await db.execute(
             """
             INSERT OR IGNORE INTO products
                 (schema_version, record_type, source_name, source_url,
@@ -245,7 +243,7 @@ async def save_product(
             ),
         )
         await db.commit()
-        return True
+        return cur.rowcount > 0
     except Exception as exc:
         logger.error("Failed to save product '%s': %s", startup_name, exc)
         return False

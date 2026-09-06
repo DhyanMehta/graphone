@@ -7,6 +7,7 @@ Provides per-domain rate limiting via asyncio.Semaphore and configurable delays.
 
 import asyncio
 import logging
+import time
 from typing import Optional
 
 import aiohttp
@@ -38,6 +39,8 @@ class HttpClient:
     ):
         self._semaphore = asyncio.Semaphore(concurrency_limit)
         self._rate_limit_delay = rate_limit_delay
+        self._rate_lock = asyncio.Lock()
+        self._last_request_time = 0.0
         self._timeout = aiohttp.ClientTimeout(total=timeout)
         self._max_retries = max_retries
         self._session: Optional[aiohttp.ClientSession] = None
@@ -66,14 +69,21 @@ class HttpClient:
             last_error: Optional[Exception] = None
             for attempt in range(1, self._max_retries + 1):
                 try:
+                    # Enforce strict domain-level rate pacing across all workers
+                    if self._rate_limit_delay > 0:
+                        async with self._rate_lock:
+                            now = time.monotonic()
+                            elapsed = now - self._last_request_time
+                            if elapsed < self._rate_limit_delay:
+                                await asyncio.sleep(self._rate_limit_delay - elapsed)
+                            self._last_request_time = time.monotonic()
+
                     session = await self._get_session()
                     async with session.get(
                         url, headers=headers, params=params
                     ) as resp:
                         if resp.status == 200:
                             body = await resp.text()
-                            # Respect rate limit delay after successful request
-                            await asyncio.sleep(self._rate_limit_delay)
                             return body
                         elif resp.status == 429:
                             # Rate limited — back off longer
@@ -135,13 +145,21 @@ class HttpClient:
             last_error: Optional[Exception] = None
             for attempt in range(1, self._max_retries + 1):
                 try:
+                    # Enforce strict domain-level rate pacing across all workers
+                    if self._rate_limit_delay > 0:
+                        async with self._rate_lock:
+                            now = time.monotonic()
+                            elapsed = now - self._last_request_time
+                            if elapsed < self._rate_limit_delay:
+                                await asyncio.sleep(self._rate_limit_delay - elapsed)
+                            self._last_request_time = time.monotonic()
+
                     session = await self._get_session()
                     async with session.get(
                         url, headers=headers, params=params
                     ) as resp:
                         if resp.status == 200:
                             data = await resp.json(content_type=None)
-                            await asyncio.sleep(self._rate_limit_delay)
                             return data
                         elif resp.status == 429:
                             wait = BACKOFF_BASE * (2 ** attempt)

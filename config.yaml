@@ -69,6 +69,6 @@ sources:
     name: "SaaSHub"
     base_url: "https://www.saashub.com"
     client_type: "http"
-    concurrency_limit: 5
+    concurrency_limit: 1
     rate_limit_delay: 1.0
     enabled: true
